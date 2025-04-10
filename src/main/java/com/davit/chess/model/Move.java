@@ -10,4 +10,16 @@ public class Move {
         this.to = to;
         this.piece = piece;
     }
+
+    public Square from() {
+        return from;
+    }
+
+    public Square to() {
+        return to;
+    }
+
+    public Piece getPiece() {
+        return piece;
+    }
 }
