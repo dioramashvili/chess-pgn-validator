@@ -10,7 +10,6 @@ public class Queen extends Piece {
 
     @Override
     public List<Move> getLegalMoves(Board board, Square from) {
-        List<Move> moves = new ArrayList<>();
 
         int[][] directions = {
                 {-1, 0},  // Up
@@ -24,34 +23,7 @@ public class Queen extends Piece {
 
         };
 
-        int row = from.row();
-        int col = from.col();
+        return generateSlidingMoves(board, from, directions);
 
-        for (int[] dir : directions) {
-            int newRow = row + dir[0];
-            int newCol = col + dir[1];
-
-            while (board.isOnBoard(newRow, newCol)) {
-                Square to = new Square(newRow, newCol);
-
-                if (!board.isOccupied(to)) {
-                    // Add move and keep sliding
-                    moves.add(new Move(from, to, this));
-                } else {
-                    // If it's an opponent piece, capture and stop
-                    Piece target = board.getPiece(to);
-                    if (target.getColor() != this.getColor()) {
-                        moves.add(new Move(from, to, this));
-                    }
-                    break;
-                }
-
-                // Move one step further in this direction
-                newRow += dir[0];
-                newCol += dir[1];
-            }
-        }
-
-        return moves;
     }
 }
