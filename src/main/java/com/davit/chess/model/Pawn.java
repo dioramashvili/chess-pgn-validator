@@ -5,11 +5,9 @@ import java.util.List;
 
 public class Pawn extends Piece {
 
-    boolean hasMoved;
 
     public Pawn(Color color, PieceType type) {
         super(color, type);
-        hasMoved = false;
     }
 
     @Override
