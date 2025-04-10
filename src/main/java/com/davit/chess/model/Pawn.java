@@ -17,24 +17,48 @@ public class Pawn extends Piece {
         List<Move> moves = new ArrayList<>();
         int direction = (getColor() == Color.WHITE) ? -1 : 1; // Define the direction of the movement
 
-        //Initialize possible squares for pawn
-        Square oneForward = new Square(from.row() + direction, from.col());
-        Square twoForward = new Square(from.row() + 2 * direction, from.col());
-        Square leftCapture = new Square(from.row() + direction, from.col() - 1);
-        Square rightCapture = new Square(from.row() + direction, from.col() + 1);
+        int oneForwardRow = from.row() + direction;
+        int twoForwardRow = from.row() + 2 * direction;
+        int col = from.col();
 
-        if (!board.isOccupied(oneForward)) {
-            moves.add(new Move(from, oneForward, this));
-            if (!hasMoved && !board.isOccupied(twoForward)){
-                moves.add(new Move(from, twoForward, this));
+        // One Forward
+        if (board.isOnBoard(oneForwardRow, col)) {
+            Square oneForward = new Square(oneForwardRow, col);
+            if (!board.isOccupied(oneForward)) {
+                moves.add(new Move(from, oneForward, this));
+            }
+
+            // Two forward at starting row
+            if (!hasMoved && board.isOnBoard(twoForwardRow, col)) {
+                Square twoForward = new Square(twoForwardRow, col);
+                if (!board.isOccupied(twoForward)) {
+                    moves.add(new Move(from, twoForward, this));
+                }
             }
         }
 
-        if (board.getPiece(leftCapture).color != this.color || !board.isOccupied(leftCapture)){
-            moves.add(new Move(from, leftCapture, this));
+        // Left Diagonal Capture
+        int leftCol = col - 1;
+        if (board.isOnBoard(oneForwardRow, leftCol)) {
+            Square leftCapture = new Square(oneForwardRow, leftCol);
+            if (board.isOccupied(leftCapture)) {
+                Piece target = board.getPiece(leftCapture);
+                if (target.color != this.color) {
+                    moves.add(new Move(from, leftCapture, this));
+                }
+            }
         }
-        if (board.getPiece(rightCapture).color != this.color || !board.isOccupied(rightCapture)){
-            moves.add(new Move(from, rightCapture, this));
+
+        // Right Diagonal Capture
+        int rightCol = col + 1;
+        if (board.isOnBoard(oneForwardRow, rightCol)) {
+            Square rightCapture = new Square(oneForwardRow, rightCol);
+            if (board.isOccupied(rightCapture)) {
+                Piece target = board.getPiece(rightCapture);
+                if (target.color != this.color) {
+                    moves.add(new Move(from, rightCapture, this));
+                }
+            }
         }
 
         return moves;
