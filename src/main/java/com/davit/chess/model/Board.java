@@ -7,18 +7,50 @@ public class Board {
     private final Piece[][] board = new Piece[8][8];
 
     public Board() {
-//        initializeStandardSetup();
+        initializeStandardSetup();
     }
 
-//    private void initializeStandardSetup(){
-//
-//    }
+    private void initializeStandardSetup() {
+        // Place pawns
+        for (int col = 0; col < 8; col++) {
+            setPiece(new Square(1, col), new Pawn(Color.BLACK, PieceType.PAWN));
+            setPiece(new Square(6, col), new Pawn(Color.WHITE, PieceType.PAWN));
+        }
 
-    public Piece getPiece(Square square){
+        // Define the order of major pieces
+        PieceType[] pieceOrder = {
+                PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN,
+                PieceType.KING, PieceType.BISHOP, PieceType.KNIGHT, PieceType.ROOK
+        };
+
+        // Place major pieces
+        for (int col = 0; col < 8; col++) {
+            PieceType type = pieceOrder[col];
+            setPiece(new Square(0, col), createPiece(Color.BLACK, type));
+            setPiece(new Square(7, col), createPiece(Color.WHITE, type));
+        }
+    }
+
+    private Piece createPiece(Color color, PieceType type) {
+        return switch (type) {
+            case PAWN -> new Pawn(color, type);
+            case KNIGHT -> new Knight(color, type);
+            case BISHOP -> new Bishop(color, type);
+            case ROOK -> new Rook(color, type);
+            case QUEEN -> new Queen(color, type);
+            case KING -> new King(color, type);
+        };
+    }
+
+    public Piece getPiece(Square square) {
         return board[square.row()][square.col()];
     }
 
-    public boolean isOccupied(Square square){
+    public void setPiece(Square square, Piece piece) {
+        board[square.row()][square.col()] = piece;
+    }
+
+    public boolean isOccupied(Square square) {
         return getPiece(square) != null;
     }
 
@@ -30,13 +62,13 @@ public class Board {
         return isOnBoard(square.row(), square.col());
     }
 
-    public List<Square> getAllSquaresWithPiecesOfColor(Color color){
-        List <Square> squares = new ArrayList<>();
-        for (int row = 0; row < 8; row++){
-            for (int col = 0; col < 8; col++){
+    public List<Square> getAllSquaresWithPiecesOfColor(Color color) {
+        List<Square> squares = new ArrayList<>();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
                 Square sq = new Square(row, col);
                 Piece p = getPiece(sq);
-                if(p != null && p.getColor() == color){
+                if (p != null && p.getColor() == color) {
                     squares.add(sq);
                 }
             }
@@ -44,21 +76,42 @@ public class Board {
         return squares;
     }
 
-    public boolean isSquareUnderAttack(Square square, Color byColor){
-        for (Square from : getAllSquaresWithPiecesOfColor(byColor)){
+    public boolean isSquareUnderAttack(Square square, Color byColor) {
+        for (Square from : getAllSquaresWithPiecesOfColor(byColor)) {
             Piece p = getPiece(from);
-
-            if (p != null){
+            if (p != null) {
                 List<Move> attacks = p.getLegalMoves(this, from);
-
-                for (Move m  : attacks){
-                    if (m.to().equals(square)){
+                for (Move m : attacks) {
+                    if (m.to().equals(square)) {
                         return true;
                     }
                 }
             }
         }
-
         return false;
+    }
+
+    public void printBoard() {
+        for (int row = 0; row < 8; row++) {
+            System.out.print(8 - row + " "); // Print rank (8 to 1)
+            for (int col = 0; col < 8; col++) {
+                Piece p = board[row][col];
+                if (p == null) {
+                    System.out.print(". ");
+                } else {
+                    char symbol = switch (p.getType()) {
+                        case KING -> 'K';
+                        case QUEEN -> 'Q';
+                        case ROOK -> 'R';
+                        case BISHOP -> 'B';
+                        case KNIGHT -> 'N';
+                        case PAWN -> 'P';
+                    };
+                    System.out.print((p.getColor() == Color.WHITE ? Character.toUpperCase(symbol) : Character.toLowerCase(symbol)) + " ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println("  a b c d e f g h");
     }
 }
