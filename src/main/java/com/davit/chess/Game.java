@@ -6,7 +6,7 @@ public class Game {
     private final Board board;
     private Color playerToMove;
 
-    public Game(Board board) {
+    public Game() {
         this.board = new Board();
         this.playerToMove = Color.WHITE;
     }
