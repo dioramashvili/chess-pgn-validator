@@ -114,4 +114,15 @@ public class Board {
         }
         System.out.println("  a b c d e f g h");
     }
+
+    public void movePiece(Move move){
+        Square from = move.from();
+        Square to = move.to();
+        Piece piece = move.getPiece();
+
+        setPiece(to, piece);
+        setPiece(from, null);
+
+        piece.setHasMoved(true);
+    }
 }

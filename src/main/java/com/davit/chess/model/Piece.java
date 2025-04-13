@@ -22,6 +22,10 @@ public abstract class Piece {
         return type;
     }
 
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
+    }
+
     // Important: abstract method for move validation
     public abstract List<Move> getLegalMoves(Board board, Square from);
 
