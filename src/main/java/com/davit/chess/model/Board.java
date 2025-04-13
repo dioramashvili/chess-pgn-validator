@@ -4,11 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Board {
-    private final Piece[][] board = new Piece[8][8];
+    private Piece[][] board = new Piece[8][8];
 
     public Board() {
         initializeStandardSetup();
     }
+
+    public Board(Board other) {
+        this.board = new Piece[8][8];
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece original = other.board[row][col];
+                if (original != null) {
+                    this.board[row][col] = clonePiece(original);
+                }
+            }
+        }
+    }
+
 
     private void initializeStandardSetup() {
         // Place pawns
@@ -41,6 +54,19 @@ public class Board {
             case KING -> new King(color, type);
         };
     }
+
+    private Piece clonePiece(Piece original) {
+        // This assumes all your piece classes use (Color, PieceType) constructor
+        return switch (original.getType()) {
+            case PAWN -> new Pawn(original.getColor(), PieceType.PAWN);
+            case ROOK -> new Rook(original.getColor(), PieceType.ROOK);
+            case KNIGHT -> new Knight(original.getColor(), PieceType.KNIGHT);
+            case BISHOP -> new Bishop(original.getColor(), PieceType.BISHOP);
+            case QUEEN -> new Queen(original.getColor(), PieceType.QUEEN);
+            case KING -> new King(original.getColor(), PieceType.KING);
+        };
+    }
+
 
     public Piece getPiece(Square square) {
         return board[square.row()][square.col()];
