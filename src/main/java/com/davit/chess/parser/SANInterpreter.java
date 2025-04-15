@@ -21,6 +21,24 @@ public class SANInterpreter {
         // Determine if it's a capture
         boolean isCapture = cleaned.contains("x");
 
+        // Extract disambiguation character safely (e.g. 'g' in Nge2, or '1' in R1e1)
+        // Only if there's more than just a piece letter and destination square
+        String disambiguation = null;
+        int offset = (isCapture ? 1 : 0);  // skip 'x' if it's a capture
+        int disambIndex = 1; // default index of potential disambiguator
+
+        if (cleaned.length() > (3 + offset)) {
+            char c = cleaned.charAt(disambIndex);
+            if (c != 'x') { // must NOT be 'x' (capture marker)
+                if (Character.isLetter(c)) {
+                    disambiguation = String.valueOf(c); // likely a file (e.g. 'g')
+                } else if (Character.isDigit(c)) {
+                    disambiguation = String.valueOf(c); // likely a rank (e.g. '1')
+                }
+            }
+        }
+
+
         // Extract destination square (last two characters)
         if (cleaned.length() < 2) return null;
         String coord = cleaned.substring(cleaned.length() - 2);
@@ -59,6 +77,18 @@ public class SANInterpreter {
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
+
+            // Apply disambiguation
+            if (disambiguation != null) {
+                char dis = disambiguation.charAt(0);
+                if (Character.isLetter(dis)) {
+                    int disCol = dis - 'a';
+                    if (from.col() != disCol) continue; // only allow matching file
+                } else if (Character.isDigit(dis)) {
+                    int disRow = 8 - Character.getNumericValue(dis);
+                    if (from.row() != disRow) continue; // only allow matching rank
+                }
+            }
 
             List<Move> legalMoves = piece.getLegalMoves(board, from);
             for (Move move : legalMoves) {
