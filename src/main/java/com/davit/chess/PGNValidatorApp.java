@@ -1,5 +1,6 @@
 package com.davit.chess;
 
+import com.davit.chess.model.Move;
 import com.davit.chess.parser.*;
 
 import java.io.IOException;
@@ -14,14 +15,20 @@ public class PGNValidatorApp {
 
         if (result.hasErrors()) {
             System.out.println("Parsing errors found:");
-            for (String error : result.errors){
-                System.out.println(" - " + error);
-            }
+            result.errors.forEach(System.out::println);
         } else {
-            System.out.println("Moves extracted:");
-            for (String move : result.moves){
-                System.out.println(" - " + move);
+            Game game = new Game();
+            int moveNumber = 1;
+            for (String san : result.moves){
+                Move move = SANInterpreter.toMove(san, game);
+                if (move == null || !game.tryMove(move)){
+                    System.out.println("Illegal move at #" + moveNumber + ": " + san);
+                    game.getBoard().printBoard();
+                    return;
+                }
+                moveNumber++;
             }
+            System.out.println("Game is valid");
         }
     }
 }

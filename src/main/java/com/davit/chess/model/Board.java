@@ -105,6 +105,10 @@ public class Board {
     public boolean isSquareUnderAttack(Square square, Color byColor) {
         for (Square from : getAllSquaresWithPiecesOfColor(byColor)) {
             Piece p = getPiece(from);
+
+            // Skip opponent king to avoid infinite recursion
+            if (p.getType() == PieceType.KING) continue;
+
             if (p != null) {
                 List<Move> attacks = p.getLegalMoves(this, from);
                 for (Move m : attacks) {
@@ -116,6 +120,7 @@ public class Board {
         }
         return false;
     }
+
 
     public void printBoard() {
         for (int row = 0; row < 8; row++) {
@@ -145,6 +150,24 @@ public class Board {
         Square from = move.from();
         Square to = move.to();
         Piece piece = move.getPiece();
+
+        // Castling
+        if (piece.getType() == PieceType.KING && Math.abs(from.col() - to.col()) == 2) {
+            int row = from.row();
+            if (to.col() == 6) {
+                // Kingside
+                Piece rook = getPiece(new Square(row, 7));
+                setPiece(new Square(row, 5), rook);
+                setPiece(new Square(row, 7), null);
+                if (rook != null) rook.setHasMoved(true);
+            } else if (to.col() == 2) {
+                // Queenside
+                Piece rook = getPiece(new Square(row, 0));
+                setPiece(new Square(row, 3), rook);
+                setPiece(new Square(row, 0), null);
+                if (rook != null) rook.setHasMoved(true);
+            }
+        }
 
         setPiece(to, piece);
         setPiece(from, null);
