@@ -6,6 +6,7 @@ import com.davit.chess.model.*;
 import java.util.List;
 
 public class SANInterpreter {
+
     public static Move toMove(String san, Game game) {
         if (san.equals("O-O") || san.equals("O-O-O")) {
             return getCastlingMove(game, san);
@@ -21,15 +22,40 @@ public class SANInterpreter {
         boolean isCapture = cleaned.contains("x");
 
         // Extract destination square (last two characters)
+        if (cleaned.length() < 2) return null;
         String coord = cleaned.substring(cleaned.length() - 2);
         int col = coord.charAt(0) - 'a';
         int row = 8 - Character.getNumericValue(coord.charAt(1));
+        if (col < 0 || col > 7 || row < 0 || row > 7) return null;
         Square to = new Square(row, col);
 
         // Determine piece type
         PieceType type = extractPieceType(cleaned);
 
-        // Search all pieces of that type belonging to player
+        // Special handling for pawn captures (e.g., exd5)
+        if (type == PieceType.PAWN && isCapture) {
+            char fromFile = cleaned.charAt(0); // e.g., 'e' in "exd5"
+            int fromCol = fromFile - 'a';
+
+            for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
+                if (from.col() != fromCol) continue;
+                Piece piece = board.getPiece(from);
+                if (piece.getType() != PieceType.PAWN) continue;
+
+                for (Move move : piece.getLegalMoves(board, from)) {
+                    if (move.to().equals(to)) {
+                        if (!board.isOccupied(to)) continue;
+                        Piece target = board.getPiece(to);
+                        if (target.getColor() != player) {
+                            return move;
+                        }
+                    }
+                }
+            }
+            return null; // no matching pawn found
+        }
+
+        // All other pieces
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
@@ -37,13 +63,17 @@ public class SANInterpreter {
             List<Move> legalMoves = piece.getLegalMoves(board, from);
             for (Move move : legalMoves) {
                 if (move.to().equals(to)) {
-                    return move; // Found valid move
+                    if (isCapture) {
+                        if (!board.isOccupied(to)) continue;
+                        Piece target = board.getPiece(to);
+                        if (target.getColor() == player) continue; // can't capture own
+                    }
+                    return move;
                 }
             }
         }
 
-        // No legal move found
-        return null;
+        return null; // no valid move matched
     }
 
     private static Move getCastlingMove(Game game, String san) {
@@ -51,11 +81,11 @@ public class SANInterpreter {
         Color color = game.getPlayerToMove();
         Square from, to;
 
-        if (color == Color.WHITE){
-            from = new Square(7, 4); // White king starts at e1
+        if (color == Color.WHITE) {
+            from = new Square(7, 4); // e1
             to = san.equals("O-O") ? new Square(7, 6) : new Square(7, 2); // g1 or c1
         } else {
-            from = new Square(0, 4); // Black king starts at e8
+            from = new Square(0, 4); // e8
             to = san.equals("O-O") ? new Square(0, 6) : new Square(0, 2); // g8 or c8
         }
 
@@ -80,7 +110,7 @@ public class SANInterpreter {
             case 'R' -> PieceType.ROOK;
             case 'Q' -> PieceType.QUEEN;
             case 'K' -> PieceType.KING;
-            default -> PieceType.PAWN; // if not a piece letter, assume it's a pawn
+            default -> PieceType.PAWN; // if no letter, it's a pawn
         };
     }
 }
