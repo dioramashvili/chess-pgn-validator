@@ -27,12 +27,18 @@ public class Pawn extends Piece {
             }
 
             // Two forward at starting row
-            if (!hasMoved && board.isOnBoard(twoForwardRow, col)) {
+            boolean isAtStartingRow = (getColor() == Color.WHITE && from.row() == 6) ||
+                    (getColor() == Color.BLACK && from.row() == 1);
+
+            if (board.isOnBoard(twoForwardRow, col)) {
                 Square twoForward = new Square(twoForwardRow, col);
-                if (!board.isOccupied(twoForward)) {
-                    moves.add(new Move(from, twoForward, this));
+                if (!board.isOccupied(oneForward)) {
+                    if (isAtStartingRow && !board.isOccupied(twoForward)) {
+                        moves.add(new Move(from, twoForward, this));
+                    }
                 }
             }
+
         }
 
         // Left Diagonal Capture
