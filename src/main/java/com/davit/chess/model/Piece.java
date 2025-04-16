@@ -59,5 +59,4 @@ public abstract class Piece {
 
         return moves;
     }
-
 }

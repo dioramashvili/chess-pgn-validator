@@ -106,10 +106,21 @@ public class Board {
         for (Square from : getAllSquaresWithPiecesOfColor(byColor)) {
             Piece p = getPiece(from);
 
-            // Skip opponent king to avoid infinite recursion
             if (p.getType() == PieceType.KING) continue;
 
-            if (p != null) {
+            if (p.getType() == PieceType.PAWN) {
+                int direction = (p.getColor() == Color.WHITE) ? -1 : 1;
+                int row = from.row() + direction;
+                int colLeft = from.col() - 1;
+                int colRight = from.col() + 1;
+
+                if (isOnBoard(row, colLeft) && square.equals(new Square(row, colLeft))) {
+                    return true;
+                }
+                if (isOnBoard(row, colRight) && square.equals(new Square(row, colRight))) {
+                    return true;
+                }
+            } else {
                 List<Move> attacks = p.getLegalMoves(this, from);
                 for (Move m : attacks) {
                     if (m.to().equals(square)) {
