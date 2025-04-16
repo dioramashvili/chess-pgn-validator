@@ -8,6 +8,8 @@ import java.util.List;
 public class SANInterpreter {
 
     public static Move toMove(String san, Game game) {
+        System.out.println("🔍 Parsing SAN: " + san);
+
         if (san.equals("O-O") || san.equals("O-O-O")) {
             return getCastlingMove(game, san);
         }
@@ -15,46 +17,44 @@ public class SANInterpreter {
         Board board = game.getBoard();
         Color player = game.getPlayerToMove();
 
-        // Strip check/mate markers
         String cleaned = san.replaceAll("[+#]", "");
-
-        // Determine if it's a capture
         boolean isCapture = cleaned.contains("x");
 
-        // Extract disambiguation character safely (e.g. 'g' in Nge2, or '1' in R1e1)
-        // Only if there's more than just a piece letter and destination square
-        String disambiguation = null;
-        int offset = (isCapture ? 1 : 0);  // skip 'x' if it's a capture
-        int disambIndex = 1; // default index of potential disambiguator
-
-        if (cleaned.length() > (3 + offset)) {
-            char c = cleaned.charAt(disambIndex);
-            if (c != 'x') { // must NOT be 'x' (capture marker)
-                if (Character.isLetter(c)) {
-                    disambiguation = String.valueOf(c); // likely a file (e.g. 'g')
-                } else if (Character.isDigit(c)) {
-                    disambiguation = String.valueOf(c); // likely a rank (e.g. '1')
-                }
-            }
-        }
-
-
-        // Extract destination square (last two characters)
-        if (cleaned.length() < 2) return null;
+        // Extract target square (last two chars)
         String coord = cleaned.substring(cleaned.length() - 2);
         int col = coord.charAt(0) - 'a';
         int row = 8 - Character.getNumericValue(coord.charAt(1));
-        if (col < 0 || col > 7 || row < 0 || row > 7) return null;
         Square to = new Square(row, col);
 
         // Determine piece type
         PieceType type = extractPieceType(cleaned);
 
-        // Special handling for pawn captures (e.g., exd5)
-        if (type == PieceType.PAWN && isCapture) {
-            char fromFile = cleaned.charAt(0); // e.g., 'e' in "exd5"
-            int fromCol = fromFile - 'a';
+        // Log parsed info
+        System.out.println(" → Cleaned: " + cleaned);
+        System.out.println(" → Piece type: " + type);
+        System.out.println(" → Target square: " + to);
+        System.out.println(" → Is capture: " + isCapture);
 
+        // Extract disambiguation (but only for non-pawns)
+        String disambiguation = null;
+        int offset = isCapture ? 1 : 0;
+        if (type != PieceType.PAWN && cleaned.length() > (3 + offset)) {
+            char c = cleaned.charAt(1);
+            if (c != 'x') {
+                if (Character.isLetter(c)) {
+                    disambiguation = String.valueOf(c);
+                } else if (Character.isDigit(c)) {
+                    disambiguation = String.valueOf(c);
+                }
+            }
+        }
+
+        System.out.println(" → Disambiguation: " + disambiguation);
+
+        // Special case: pawn captures like exd5
+        if (type == PieceType.PAWN && isCapture) {
+            char sourceFile = cleaned.charAt(0);
+            int fromCol = sourceFile - 'a';
             for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
                 if (from.col() != fromCol) continue;
                 Piece piece = board.getPiece(from);
@@ -70,23 +70,23 @@ public class SANInterpreter {
                     }
                 }
             }
-            return null; // no matching pawn found
+            return null;
         }
 
-        // All other pieces
+        // All other pieces, including pawn non-captures like a4
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
 
-            // Apply disambiguation
+            // Apply disambiguation filter if present
             if (disambiguation != null) {
                 char dis = disambiguation.charAt(0);
                 if (Character.isLetter(dis)) {
                     int disCol = dis - 'a';
-                    if (from.col() != disCol) continue; // only allow matching file
+                    if (from.col() != disCol) continue;
                 } else if (Character.isDigit(dis)) {
                     int disRow = 8 - Character.getNumericValue(dis);
-                    if (from.row() != disRow) continue; // only allow matching rank
+                    if (from.row() != disRow) continue;
                 }
             }
 
@@ -96,15 +96,24 @@ public class SANInterpreter {
                     if (isCapture) {
                         if (!board.isOccupied(to)) continue;
                         Piece target = board.getPiece(to);
-                        if (target.getColor() == player) continue; // can't capture own
+                        if (target.getColor() == player) continue;
                     }
+                    System.out.println("✅ Matched: " + from + " → " + to);
                     return move;
                 }
             }
+
+            // Print legal moves even if no match
+            System.out.println("🔹 " + piece.getType() + " at " + from + " legal moves: ");
+            for (Move m : legalMoves) {
+                System.out.println("   → " + m.from() + " → " + m.to());
+            }
         }
 
-        return null; // no valid move matched
+        System.out.println("❌ No matching move found for SAN: " + san);
+        return null;
     }
+
 
     private static Move getCastlingMove(Game game, String san) {
         Board board = game.getBoard();
