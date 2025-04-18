@@ -9,9 +9,18 @@ import java.util.List;
 public class SANInterpreter {
 
     private static final boolean DEBUG = false;
+    private static int debugMoveCounter = 1;
+
+    public static void resetDebugCounter() {
+        debugMoveCounter = 1;
+    }
 
     public static Move toMove(String san, Game game) {
-        if (DEBUG) System.out.println("🔍 Parsing SAN: " + san);
+        if (DEBUG) {
+            System.out.println("🔍 Move #" + debugMoveCounter + " by " + game.getPlayerToMove() + ": " + san);
+            if (game.getPlayerToMove() == Color.WHITE)
+                debugMoveCounter++;
+        }
 
         if (san.equals("O-O") || san.equals("O-O-O")) {
             return getCastlingMove(game, san);
@@ -33,20 +42,17 @@ public class SANInterpreter {
                 default -> null;
             };
             if (promotionType == null) {
-                // This is what makes the test pass
                 System.out.println("❌ Invalid promotion piece: " + promoChar);
                 return null;
             }
             san = san.substring(0, promoIndex); // Remove promotion part for rest of parsing
         }
 
-
         boolean isCheck = san.contains("+");
         boolean isMate = san.contains("#");
         String cleaned = san.replaceAll("[+#]", "");
         boolean isCapture = cleaned.contains("x");
 
-        // Extract target square
         String coord = cleaned.substring(cleaned.length() - 2);
         int col = coord.charAt(0) - 'a';
         int row = 8 - Character.getNumericValue(coord.charAt(1));
@@ -64,7 +70,6 @@ public class SANInterpreter {
             }
         }
 
-        // Extract disambiguation
         String disambiguation = null;
         int offset = isCapture ? 1 : 0;
         if (type != PieceType.PAWN && cleaned.length() > (3 + offset)) {
@@ -80,13 +85,11 @@ public class SANInterpreter {
 
         if (DEBUG) System.out.println(" → Disambiguation: " + disambiguation);
 
-        // Special case: pawn captures
         if (type == PieceType.PAWN && isCapture) {
             char sourceFile = cleaned.charAt(0);
             int fromCol = sourceFile - 'a';
             for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
                 if (from.col() != fromCol) continue;
-
                 Piece piece = board.getPiece(from);
                 if (piece.getType() != PieceType.PAWN) continue;
 
@@ -109,7 +112,6 @@ public class SANInterpreter {
             return null;
         }
 
-        // All other pieces
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
@@ -134,7 +136,6 @@ public class SANInterpreter {
                         if (target.getColor() == player) continue;
                     }
 
-                    // Validate check/mate if declared
                     if (isCheck || isMate) {
                         Board simulatedBoard = new Board(board);
                         Game simulatedGame = new Game(simulatedBoard, player);

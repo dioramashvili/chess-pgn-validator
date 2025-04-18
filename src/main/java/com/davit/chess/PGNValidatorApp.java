@@ -1,8 +1,6 @@
 package com.davit.chess;
 
-import com.davit.chess.GameState;
 import com.davit.chess.model.Move;
-import com.davit.chess.model.Square;
 import com.davit.chess.util.ErrorReporter;
 import com.davit.chess.parser.PGNParseResult;
 import com.davit.chess.parser.PGNParser;
@@ -11,6 +9,8 @@ import com.davit.chess.parser.SANInterpreter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static com.davit.chess.parser.SANInterpreter.resetDebugCounter;
 
 public class PGNValidatorApp {
     public static void main(String[] args) throws IOException {
@@ -58,6 +58,7 @@ public class PGNValidatorApp {
             }
 
             System.out.println("=====================================\n");
+            resetDebugCounter();
             gameIndex++;
         }
 
