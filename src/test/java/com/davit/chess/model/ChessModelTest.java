@@ -133,7 +133,6 @@ public class ChessModelTest {
         assertEquals(GameState.STALEMATE, game.getGameState());
     }
 
-
     @Test
     public void testPGNParserValidMovesExtraction() {
         String pgn = """

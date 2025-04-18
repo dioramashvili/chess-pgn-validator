@@ -21,7 +21,6 @@ public class InvalidMoveTests {
         assertTrue(result.errors().stream().anyMatch(e -> e.contains("badMove")), "Error message should include 'badMove'");
     }
 
-
     @Test
     public void testInvalidSyntax_IllegalCharacter() {
         String badPGN = "1. Q@4";
