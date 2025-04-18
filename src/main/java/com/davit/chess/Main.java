@@ -1,55 +1,39 @@
 package com.davit.chess;
 
 import com.davit.chess.model.*;
-
+import com.davit.chess.parser.SANInterpreter;
 
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-
         Game game = new Game();
 
+        System.out.println("♟ Welcome to the Chess CLI! Type SAN moves like e4, Nf3, O-O. Type 'exit' to quit.\n");
+
         while (true) {
-            // Step 1: print the board
             game.getBoard().printBoard();
+            System.out.print(game.getPlayerToMove() + " to move (SAN): ");
+            String input = scanner.nextLine().trim();
 
-            // Step 2: prompt for move
-            System.out.print(game.getPlayerToMove() + " to move. Enter your move (e.g., e2 e4): ");
-            String input = scanner.nextLine();
-
-            // Step 3: exit condition
             if (input.equalsIgnoreCase("exit")) break;
 
-            // Step 4: parse the move and try it...
-            String[] parts = input.split(" ");
-            if (parts.length != 2) {
-                System.out.println("Invalid input. Use format: e2 e4");
-                continue;
-            }
-
-            Square from = parseSquare(parts[0]);
-            Square to = parseSquare(parts[1]);
-            Piece piece = game.getBoard().getPiece(from);
-            if (piece == null){
-                System.out.println("No piece at " + parts[0]);
-                continue;
-            }
-
-            Move move = new Move(from, to, piece);
-            if(game.tryMove(move)){
-                System.out.println("Move accepted");
+            Move move = SANInterpreter.toMove(input, game);
+            if (move == null || !game.tryMove(move)) {
+                System.out.println("❌ Illegal move or unknown SAN notation: " + input);
             } else {
-                System.out.println("Illegal move");
+                System.out.println("✅ Move played: " + input);
+                if (game.getGameState() == GameState.CHECKMATE) {
+                    System.out.println("♚ Checkmate! " + game.getPlayerToMove().opposite() + " wins!");
+                    break;
+                } else if (game.getGameState() == GameState.STALEMATE) {
+                    System.out.println("½½ Stalemate. Game drawn.");
+                    break;
+                } else if (game.getGameState() == GameState.CHECK) {
+                    System.out.println("⚠ Check!");
+                }
             }
         }
     }
-
-    private static Square parseSquare(String notation) {
-        int col = notation.charAt(0) - 'a';
-        int row = 8 - Character.getNumericValue(notation.charAt(1));
-        return new Square(row, col);
-    }
-
 }
