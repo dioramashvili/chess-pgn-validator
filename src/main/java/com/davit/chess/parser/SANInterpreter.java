@@ -7,8 +7,10 @@ import java.util.List;
 
 public class SANInterpreter {
 
+    private static final boolean DEBUG = false;
+
     public static Move toMove(String san, Game game) {
-        System.out.println("🔍 Parsing SAN: " + san);
+        if (DEBUG) System.out.println("🔍 Parsing SAN: " + san);
 
         if (san.equals("O-O") || san.equals("O-O-O")) {
             return getCastlingMove(game, san);
@@ -35,21 +37,22 @@ public class SANInterpreter {
         String cleaned = san.replaceAll("[+#]", "");
         boolean isCapture = cleaned.contains("x");
 
-        // Extract target square (last two chars)
+        // Extract target square
         String coord = cleaned.substring(cleaned.length() - 2);
         int col = coord.charAt(0) - 'a';
         int row = 8 - Character.getNumericValue(coord.charAt(1));
         Square to = new Square(row, col);
 
-        // Determine piece type
         PieceType type = extractPieceType(cleaned);
 
-        System.out.println(" → Cleaned: " + cleaned);
-        System.out.println(" → Piece type: " + type);
-        System.out.println(" → Target square: " + to);
-        System.out.println(" → Is capture: " + isCapture);
-        if (promotionType != null) {
-            System.out.println(" → Promotion to: " + promotionType);
+        if (DEBUG) {
+            System.out.println(" → Cleaned: " + cleaned);
+            System.out.println(" → Piece type: " + type);
+            System.out.println(" → Target square: " + to);
+            System.out.println(" → Is capture: " + isCapture);
+            if (promotionType != null) {
+                System.out.println(" → Promotion to: " + promotionType);
+            }
         }
 
         // Extract disambiguation
@@ -66,9 +69,9 @@ public class SANInterpreter {
             }
         }
 
-        System.out.println(" → Disambiguation: " + disambiguation);
+        if (DEBUG) System.out.println(" → Disambiguation: " + disambiguation);
 
-        // Special case: pawn captures like exd5
+        // Special case: pawn captures
         if (type == PieceType.PAWN && isCapture) {
             char sourceFile = cleaned.charAt(0);
             int fromCol = sourceFile - 'a';
@@ -84,7 +87,7 @@ public class SANInterpreter {
                         if (target == null) {
                             Square enPassant = board.getEnPassantTarget();
                             if (to.equals(enPassant)) {
-                                return new Move(from, to, piece, promotionType); // en passant + promotion
+                                return new Move(from, to, piece, promotionType);
                             }
                         } else {
                             if (target.getColor() != player) {
@@ -97,7 +100,7 @@ public class SANInterpreter {
             return null;
         }
 
-        // All other pieces, including non-capture pawn moves
+        // All other pieces
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
@@ -121,20 +124,23 @@ public class SANInterpreter {
                         Piece target = board.getPiece(to);
                         if (target.getColor() == player) continue;
                     }
-                    System.out.println("✅ Matched: " + from + " → " + to);
+
+                    if (DEBUG) System.out.println("✅ Matched: " + from + " → " + to);
                     return (promotionType != null)
                             ? new Move(from, to, piece, promotionType)
                             : move;
                 }
             }
 
-            System.out.println("🔹 " + piece.getType() + " at " + from + " legal moves: ");
-            for (Move m : legalMoves) {
-                System.out.println("   → " + m.from() + " → " + m.to());
+            if (DEBUG) {
+                System.out.println("🔹 " + piece.getType() + " at " + from + " legal moves: ");
+                for (Move m : legalMoves) {
+                    System.out.println("   → " + m.from() + " → " + m.to());
+                }
             }
         }
 
-        System.out.println("❌ No matching move found for SAN: " + san);
+        if (DEBUG) System.out.println("❌ No matching move found for SAN: " + san);
         return null;
     }
 
