@@ -36,4 +36,23 @@ public class Knight extends Piece {
 
         return moves;
     }
+
+    @Override
+    public List<Square> getAttackedSquares(Board board, Square from) {
+        List<Square> squares = new ArrayList<>();
+        int[][] offsets = {
+                {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+                {1, -2}, {1, 2}, {2, -1}, {2, 1}
+        };
+
+        for (int[] offset : offsets) {
+            int row = from.row() + offset[0];
+            int col = from.col() + offset[1];
+            if (board.isOnBoard(row, col)) {
+                squares.add(new Square(row, col));
+            }
+        }
+
+        return squares;
+    }
 }

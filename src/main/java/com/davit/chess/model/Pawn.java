@@ -67,4 +67,23 @@ public class Pawn extends Piece {
 
         return moves;
     }
+
+    @Override
+    public List<Square> getAttackedSquares(Board board, Square from) {
+        List<Square> squares = new ArrayList<>();
+        int direction = (this.getColor() == Color.WHITE) ? -1 : 1;
+
+        int row = from.row() + direction;
+        int colLeft = from.col() - 1;
+        int colRight = from.col() + 1;
+
+        if (board.isOnBoard(row, colLeft)) {
+            squares.add(new Square(row, colLeft));
+        }
+        if (board.isOnBoard(row, colRight)) {
+            squares.add(new Square(row, colRight));
+        }
+
+        return squares;
+    }
 }

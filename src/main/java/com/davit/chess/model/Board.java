@@ -56,8 +56,7 @@ public class Board {
     }
 
     private Piece clonePiece(Piece original) {
-        // This assumes all your piece classes use (Color, PieceType) constructor
-        return switch (original.getType()) {
+        Piece copy = switch (original.getType()) {
             case PAWN -> new Pawn(original.getColor(), PieceType.PAWN);
             case ROOK -> new Rook(original.getColor(), PieceType.ROOK);
             case KNIGHT -> new Knight(original.getColor(), PieceType.KNIGHT);
@@ -65,7 +64,10 @@ public class Board {
             case QUEEN -> new Queen(original.getColor(), PieceType.QUEEN);
             case KING -> new King(original.getColor(), PieceType.KING);
         };
+        copy.setHasMoved(original.hasMoved());  // This line is critical
+        return copy;
     }
+
 
 
     public Piece getPiece(Square square) {
@@ -121,9 +123,9 @@ public class Board {
                     return true;
                 }
             } else {
-                List<Move> attacks = p.getLegalMoves(this, from);
-                for (Move m : attacks) {
-                    if (m.to().equals(square)) {
+                List<Square> attacks = p.getAttackedSquares(this, from);
+                for (Square s : attacks) {
+                    if (s.equals(square)) {
                         return true;
                     }
                 }
@@ -160,7 +162,7 @@ public class Board {
     public void movePiece(Move move){
         Square from = move.from();
         Square to = move.to();
-        Piece piece = move.getPiece();
+        Piece piece = getPiece(from);
 
         // Castling
         if (piece.getType() == PieceType.KING && Math.abs(from.col() - to.col()) == 2) {

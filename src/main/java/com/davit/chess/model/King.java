@@ -14,22 +14,17 @@ public class King extends Piece {
         List<Move> moves = new ArrayList<>();
 
         int[][] directions = {
-                {-1, 0},  // Up
-                {1, 0},   // Down
-                {0, -1},  // Left
-                {0, 1},   // Right
-                {-1, -1}, // Up-Left
-                {-1, 1},  // Up-Right
-                {1, -1},  // Down-Left
-                {1, 1}    // Down-Right
+                {-1, 0},  {1, 0},  {0, -1}, {0, 1},
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
         };
 
-        Color enemyColor = (this.getColor() == Color.WHITE) ? Color.BLACK : Color.WHITE;
+        Color myColor = this.getColor();
+        Color enemyColor = (myColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
         int row = from.row();
         int col = from.col();
 
-        // Normal kind moves
+        // Standard king moves
         for (int[] dir : directions) {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
@@ -45,22 +40,21 @@ public class King extends Piece {
             }
         }
 
-        // Castling logic
+        // Castling logic (only if king is not in check and hasn't moved)
         if (!this.hasMoved && !board.isSquareUnderAttack(from, enemyColor)) {
-            // Kingside
+            // Kingside castling
             if (canCastle(board, from, true, enemyColor)) {
-                Square to = new Square(row, 6);
-                moves.add(new Move(from, to, this));
+                moves.add(new Move(from, new Square(row, 6), this));
             }
-            // Queenside
+            // Queenside castling
             if (canCastle(board, from, false, enemyColor)) {
-                Square to = new Square(row, 2);
-                moves.add(new Move(from, to, this));
+                moves.add(new Move(from, new Square(row, 2), this));
             }
         }
 
         return moves;
     }
+
 
     private boolean canCastle(Board board, Square kingSquare, boolean kingside, Color enemyColor) {
         int row = kingSquare.row();
@@ -90,12 +84,31 @@ public class King extends Piece {
             }
         }
 
-        // Check that destination square is not under attack
+        // Final square also must not be under attack
         if (board.isSquareUnderAttack(new Square(row, castlingTargetCol), enemyColor)) {
             return false;
         }
 
         return true;
+    }
+
+    @Override
+    public List<Square> getAttackedSquares(Board board, Square from) {
+        List<Square> squares = new ArrayList<>();
+        int[][] directions = {
+                {-1, 0},  {1, 0},  {0, -1}, {0, 1},
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
+        };
+
+        for (int[] dir : directions) {
+            int row = from.row() + dir[0];
+            int col = from.col() + dir[1];
+            if (board.isOnBoard(row, col)) {
+                squares.add(new Square(row, col));
+            }
+        }
+
+        return squares;
     }
 }
 

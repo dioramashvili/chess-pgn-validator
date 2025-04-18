@@ -20,4 +20,12 @@ public class Rook extends Piece {
 
         return generateSlidingMoves(board, from, directions);
     }
+
+    @Override
+    public List<Square> getAttackedSquares(Board board, Square from) {
+        int[][] directions = {
+                {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+        };
+        return extractAttackedSquaresFromSliding(board, from, directions);
+    }
 }

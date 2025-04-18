@@ -22,12 +22,18 @@ public abstract class Piece {
         return type;
     }
 
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+
     public void setHasMoved(boolean hasMoved) {
         this.hasMoved = hasMoved;
     }
 
     // Important: abstract method for move validation
     public abstract List<Move> getLegalMoves(Board board, Square from);
+
+    public abstract List<Square> getAttackedSquares(Board board, Square from);
 
     // Inside Piece.java (make it protected so subclasses can use it)
     protected List<Move> generateSlidingMoves(Board board, Square from, int[][] directions) {
@@ -58,5 +64,14 @@ public abstract class Piece {
         }
 
         return moves;
+    }
+
+    protected List<Square> extractAttackedSquaresFromSliding(Board board, Square from, int[][] directions) {
+        List<Move> slidingMoves = generateSlidingMoves(board, from, directions);
+        List<Square> attackedSquares = new ArrayList<>();
+        for (Move move : slidingMoves) {
+            attackedSquares.add(move.to());
+        }
+        return attackedSquares;
     }
 }
