@@ -32,8 +32,14 @@ public class SANInterpreter {
                 case 'N' -> PieceType.KNIGHT;
                 default -> null;
             };
-            san = san.substring(0, promoIndex); // strip =X
+            if (promotionType == null) {
+                // This is what makes the test pass
+                System.out.println("❌ Invalid promotion piece: " + promoChar);
+                return null;
+            }
+            san = san.substring(0, promoIndex); // Remove promotion part for rest of parsing
         }
+
 
         boolean isCheck = san.contains("+");
         boolean isMate = san.contains("#");
