@@ -65,6 +65,12 @@ public class Pawn extends Piece {
             }
         }
 
+        // En Passant Capture
+        Square enPassant = board.getEnPassantTarget();
+        if (enPassant != null && enPassant.row() == oneForwardRow && Math.abs(enPassant.col() - col) == 1) {
+            moves.add(new Move(from, enPassant, this));
+        }
+
         return moves;
     }
 

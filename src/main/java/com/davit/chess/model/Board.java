@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Board {
     private Piece[][] board = new Piece[8][8];
+    private Square enPassantTarget;
 
     public Board() {
         initializeStandardSetup();
@@ -22,6 +23,18 @@ public class Board {
         }
     }
 
+
+    public Square getEnPassantTarget() {
+        return enPassantTarget;
+    }
+
+    public void setEnPassantTarget(Square square) {
+        this.enPassantTarget = square;
+    }
+
+    public void clearEnPassantTarget() {
+        this.enPassantTarget = null;
+    }
 
     private void initializeStandardSetup() {
         // Place pawns
@@ -67,7 +80,6 @@ public class Board {
         copy.setHasMoved(original.hasMoved());  // This line is critical
         return copy;
     }
-
 
 
     public Piece getPiece(Square square) {
@@ -159,7 +171,7 @@ public class Board {
         System.out.println("  a b c d e f g h");
     }
 
-    public void movePiece(Move move){
+    public void movePiece(Move move) {
         Square from = move.from();
         Square to = move.to();
         Piece piece = getPiece(from);
@@ -180,6 +192,22 @@ public class Board {
                 setPiece(new Square(row, 0), null);
                 if (rook != null) rook.setHasMoved(true);
             }
+        }
+
+        // En Passant capture
+        if (piece.getType() == PieceType.PAWN && to.equals(enPassantTarget) && getPiece(to) == null) {
+            int direction = (piece.getColor() == Color.WHITE) ? 1 : -1;
+            Square capturedPawnSquare = new Square(to.row() + direction, to.col());
+            setPiece(capturedPawnSquare, null); // Remove captured pawn
+        }
+
+        // En Passant target setting or clearing
+        if (piece.getType() == PieceType.PAWN && Math.abs(to.row() - from.row()) == 2) {
+            int enPassantRow = (from.row() + to.row()) / 2;
+            Square target = new Square(enPassantRow, from.col());
+            this.setEnPassantTarget(target);
+        } else {
+            this.clearEnPassantTarget();
         }
 
         setPiece(to, piece);

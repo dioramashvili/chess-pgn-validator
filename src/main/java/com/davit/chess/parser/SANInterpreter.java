@@ -57,15 +57,24 @@ public class SANInterpreter {
             int fromCol = sourceFile - 'a';
             for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
                 if (from.col() != fromCol) continue;
+
                 Piece piece = board.getPiece(from);
                 if (piece.getType() != PieceType.PAWN) continue;
 
                 for (Move move : piece.getLegalMoves(board, from)) {
                     if (move.to().equals(to)) {
-                        if (!board.isOccupied(to)) continue;
                         Piece target = board.getPiece(to);
-                        if (target.getColor() != player) {
-                            return move;
+                        if (target == null) {
+                            // Check for en passant capture
+                            Square enPassant = board.getEnPassantTarget();
+
+                            if (to.equals(enPassant)) {
+                                return move; // valid en passant capture
+                            }
+                        } else {
+                            if (target.getColor() != player) {
+                                return move; // valid normal capture
+                            }
                         }
                     }
                 }
