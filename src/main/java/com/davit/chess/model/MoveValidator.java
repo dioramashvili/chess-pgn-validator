@@ -1,6 +1,4 @@
-package com.davit.chess;
-
-import com.davit.chess.model.*;
+package com.davit.chess.model;
 
 import java.util.List;
 

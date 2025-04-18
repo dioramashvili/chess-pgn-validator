@@ -1,7 +1,7 @@
 package com.davit.chess.parser;
 
-import com.davit.chess.Game;
-import com.davit.chess.GameState;
+import com.davit.chess.model.Game;
+import com.davit.chess.model.GameState;
 import com.davit.chess.model.*;
 
 import java.util.List;

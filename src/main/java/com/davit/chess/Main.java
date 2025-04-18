@@ -1,7 +1,6 @@
 package com.davit.chess;
 
 import com.davit.chess.model.*;
-import com.davit.chess.*;
 
 
 import java.util.Scanner;

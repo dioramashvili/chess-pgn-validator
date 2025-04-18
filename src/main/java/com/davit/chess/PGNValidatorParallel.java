@@ -1,14 +1,20 @@
-package com.davit.chess.parallel;
+package com.davit.chess;
 
-import com.davit.chess.Game;
+import com.davit.chess.model.Game;
 import com.davit.chess.model.Move;
-import com.davit.chess.parser.*;
+import com.davit.chess.parser.PGNParseResult;
+import com.davit.chess.parser.PGNParser;
+import com.davit.chess.parser.SANInterpreter;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PGNValidatorParallel {

@@ -1,4 +1,4 @@
-package com.davit.chess;
+package com.davit.chess.model;
 
 public enum GameState {
     ONGOING,

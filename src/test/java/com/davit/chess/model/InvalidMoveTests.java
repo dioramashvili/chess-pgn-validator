@@ -1,6 +1,5 @@
 package com.davit.chess.model;
 
-import com.davit.chess.Game;
 import com.davit.chess.parser.PGNParseResult;
 import com.davit.chess.parser.PGNParser;
 import com.davit.chess.parser.SANInterpreter;

@@ -1,5 +1,7 @@
 package com.davit.chess;
 
+import com.davit.chess.model.Game;
+import com.davit.chess.model.GameState;
 import com.davit.chess.model.Move;
 import com.davit.chess.util.ErrorReporter;
 import com.davit.chess.parser.PGNParseResult;
