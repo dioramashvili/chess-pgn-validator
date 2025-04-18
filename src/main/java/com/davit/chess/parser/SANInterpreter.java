@@ -1,6 +1,7 @@
 package com.davit.chess.parser;
 
 import com.davit.chess.Game;
+import com.davit.chess.GameState;
 import com.davit.chess.model.*;
 
 import java.util.List;
@@ -34,6 +35,8 @@ public class SANInterpreter {
             san = san.substring(0, promoIndex); // strip =X
         }
 
+        boolean isCheck = san.contains("+");
+        boolean isMate = san.contains("#");
         String cleaned = san.replaceAll("[+#]", "");
         boolean isCapture = cleaned.contains("x");
 
@@ -123,6 +126,22 @@ public class SANInterpreter {
                         if (!board.isOccupied(to)) continue;
                         Piece target = board.getPiece(to);
                         if (target.getColor() == player) continue;
+                    }
+
+                    // Validate check/mate if declared
+                    if (isCheck || isMate) {
+                        Board simulatedBoard = new Board(board);
+                        Game simulatedGame = new Game(simulatedBoard, player);
+                        simulatedGame.tryMove(move);
+                        Color opponent = (player == Color.WHITE) ? Color.BLACK : Color.WHITE;
+
+                        if (isCheck && !simulatedGame.isInCheck(opponent)) {
+                            System.out.println("⚠️  Logical error: SAN token '" + san + "' declares check ('+'), but opponent king is not in check.");
+                        }
+
+                        if (isMate && simulatedGame.getGameState() != GameState.CHECKMATE) {
+                            System.out.println("⚠️  Logical error: SAN token '" + san + "' declares mate ('#'), but the game is not in checkmate.");
+                        }
                     }
 
                     if (DEBUG) System.out.println("✅ Matched: " + from + " → " + to);

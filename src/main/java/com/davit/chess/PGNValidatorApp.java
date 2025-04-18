@@ -1,9 +1,11 @@
 package com.davit.chess;
 
+import com.davit.chess.model.Board;
 import com.davit.chess.model.Move;
 import com.davit.chess.parser.PGNParseResult;
 import com.davit.chess.parser.PGNParser;
 import com.davit.chess.parser.SANInterpreter;
+import com.davit.chess.util.ErrorReporter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,32 +27,37 @@ public class PGNValidatorApp {
             PGNParseResult result = PGNParser.extractMoves(gamePgn);
 
             if (result.hasErrors()) {
-                System.out.printf("❌ Game #%d: PGN parse error: %s%n", gameIndex, result.errors());
+                for (String error : result.errors()) {
+                    ErrorReporter.reportSyntaxError(gameIndex, error.replace("Syntax error: ", ""));
+                }
                 failed++;
             } else {
                 Game game = new Game();
+                int moveNumber = 1;
                 boolean valid = true;
 
                 for (String san : result.moves()) {
-                    Move move = SANInterpreter.toMove(san, game);
+                    Move move = com.davit.chess.parser.SANInterpreter.toMove(san, game);
+                    Board snapshot = new Board(game.getBoard()); // Capture board before the move
+
                     if (move == null || !game.tryMove(move)) {
-                        System.out.printf("❌ Game #%d: Illegal move: %s%n", gameIndex, san);
+                        ErrorReporter.reportIllegalMove(gameIndex, moveNumber, san, move, game, snapshot);
                         valid = false;
                         break;
                     }
+                    moveNumber++;
                 }
 
                 if (valid) {
                     GameState state = game.getGameState();
-                    String expected = result.result(); // e.g., "1-0"
-
-                    System.out.printf("✅ Game #%d: Valid (%s, PGN result: %s)%n", gameIndex, state, expected);
+                    System.out.printf("✅ Game #%d: Valid (%s, PGN result: %s)%n", gameIndex, state, result.result());
                     passed++;
-                }
-                else {
+                } else {
+                    System.out.printf("❌ Game #%d is invalid due to the error above.%n", gameIndex);
                     failed++;
                 }
             }
+
 
             gameIndex++;
         }
