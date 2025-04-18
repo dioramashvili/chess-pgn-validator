@@ -36,6 +36,7 @@ public class Game {
     }
 
     public boolean tryMove(Move move) {
+        if (move == null) return false;
         if (MoveValidator.isMoveLegal(board, move, playerToMove)) {
             board.movePiece(move);
             switchTurn();
@@ -90,4 +91,19 @@ public class Game {
         }
         return false;
     }
+
+    public void evaluateGameState() {
+        if (isInCheck(playerToMove)) {
+            if (!hasAnyLegalMoves(playerToMove)) {
+                gameState = GameState.CHECKMATE;
+            } else {
+                gameState = GameState.CHECK;
+            }
+        } else if (!hasAnyLegalMoves(playerToMove)) {
+            gameState = GameState.STALEMATE;
+        } else {
+            gameState = GameState.ONGOING;
+        }
+    }
+
 }
