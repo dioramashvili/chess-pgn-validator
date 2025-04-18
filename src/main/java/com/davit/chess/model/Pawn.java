@@ -13,59 +13,59 @@ public class Pawn extends Piece {
     @Override
     public List<Move> getLegalMoves(Board board, Square from) {
         List<Move> moves = new ArrayList<>();
-        int direction = (getColor() == Color.WHITE) ? -1 : 1; // Define the direction of the movement
+        int direction = (getColor() == Color.WHITE) ? -1 : 1;
+        int finalRank = (getColor() == Color.WHITE) ? 0 : 7;
 
         int oneForwardRow = from.row() + direction;
         int twoForwardRow = from.row() + 2 * direction;
         int col = from.col();
 
-        // One Forward
+        // One step forward
         if (board.isOnBoard(oneForwardRow, col)) {
             Square oneForward = new Square(oneForwardRow, col);
             if (!board.isOccupied(oneForward)) {
-                moves.add(new Move(from, oneForward, this));
-            }
+                if (oneForwardRow == finalRank) {
+                    // Add promotion options
+                    for (PieceType promo : List.of(PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT)) {
+                        moves.add(new Move(from, oneForward, this, promo));
+                    }
+                } else {
+                    moves.add(new Move(from, oneForward, this));
+                }
 
-            // Two forward at starting row
-            boolean isAtStartingRow = (getColor() == Color.WHITE && from.row() == 6) ||
-                    (getColor() == Color.BLACK && from.row() == 1);
-
-            if (board.isOnBoard(twoForwardRow, col)) {
-                Square twoForward = new Square(twoForwardRow, col);
-                if (!board.isOccupied(oneForward)) {
-                    if (isAtStartingRow && !board.isOccupied(twoForward)) {
+                // Two forward if at starting row
+                boolean atStart = (getColor() == Color.WHITE && from.row() == 6)
+                        || (getColor() == Color.BLACK && from.row() == 1);
+                if (atStart) {
+                    Square twoForward = new Square(twoForwardRow, col);
+                    if (!board.isOccupied(twoForward)) {
                         moves.add(new Move(from, twoForward, this));
                     }
                 }
             }
-
         }
 
-        // Left Diagonal Capture
-        int leftCol = col - 1;
-        if (board.isOnBoard(oneForwardRow, leftCol)) {
-            Square leftCapture = new Square(oneForwardRow, leftCol);
-            if (board.isOccupied(leftCapture)) {
-                Piece target = board.getPiece(leftCapture);
-                if (target.color != this.color) {
-                    moves.add(new Move(from, leftCapture, this));
+        // Diagonal captures (including promotion)
+        for (int dc : new int[]{-1, 1}) {
+            int newCol = col + dc;
+            if (board.isOnBoard(oneForwardRow, newCol)) {
+                Square diag = new Square(oneForwardRow, newCol);
+                if (board.isOccupied(diag)) {
+                    Piece target = board.getPiece(diag);
+                    if (target.getColor() != this.getColor()) {
+                        if (oneForwardRow == finalRank) {
+                            for (PieceType promo : List.of(PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT)) {
+                                moves.add(new Move(from, diag, this, promo));
+                            }
+                        } else {
+                            moves.add(new Move(from, diag, this));
+                        }
+                    }
                 }
             }
         }
 
-        // Right Diagonal Capture
-        int rightCol = col + 1;
-        if (board.isOnBoard(oneForwardRow, rightCol)) {
-            Square rightCapture = new Square(oneForwardRow, rightCol);
-            if (board.isOccupied(rightCapture)) {
-                Piece target = board.getPiece(rightCapture);
-                if (target.color != this.color) {
-                    moves.add(new Move(from, rightCapture, this));
-                }
-            }
-        }
-
-        // En Passant Capture
+        // En Passant
         Square enPassant = board.getEnPassantTarget();
         if (enPassant != null && enPassant.row() == oneForwardRow && Math.abs(enPassant.col() - col) == 1) {
             moves.add(new Move(from, enPassant, this));

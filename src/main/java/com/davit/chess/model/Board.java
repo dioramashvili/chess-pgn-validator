@@ -210,7 +210,19 @@ public class Board {
             this.clearEnPassantTarget();
         }
 
-        setPiece(to, piece);
+        if (move.isPromotion()) {
+            Piece promoted = switch (move.getPromotionType()) {
+                case QUEEN -> new Queen(piece.getColor(), PieceType.QUEEN);
+                case ROOK -> new Rook(piece.getColor(), PieceType.ROOK);
+                case BISHOP -> new Bishop(piece.getColor(), PieceType.BISHOP);
+                case KNIGHT -> new Knight(piece.getColor(), PieceType.KNIGHT);
+                default -> piece; // fallback, should not happen
+            };
+            promoted.setHasMoved(true);
+            setPiece(to, promoted);
+        } else {
+            setPiece(to, piece);
+        }
         setPiece(from, null);
 
         piece.setHasMoved(true);

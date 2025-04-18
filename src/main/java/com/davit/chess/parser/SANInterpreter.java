@@ -17,6 +17,21 @@ public class SANInterpreter {
         Board board = game.getBoard();
         Color player = game.getPlayerToMove();
 
+        // Handle promotion (e.g., e8=Q, exd8=N)
+        PieceType promotionType = null;
+        int promoIndex = san.indexOf('=');
+        if (promoIndex != -1 && promoIndex < san.length() - 1) {
+            char promoChar = san.charAt(promoIndex + 1);
+            promotionType = switch (promoChar) {
+                case 'Q' -> PieceType.QUEEN;
+                case 'R' -> PieceType.ROOK;
+                case 'B' -> PieceType.BISHOP;
+                case 'N' -> PieceType.KNIGHT;
+                default -> null;
+            };
+            san = san.substring(0, promoIndex); // strip =X
+        }
+
         String cleaned = san.replaceAll("[+#]", "");
         boolean isCapture = cleaned.contains("x");
 
@@ -29,13 +44,15 @@ public class SANInterpreter {
         // Determine piece type
         PieceType type = extractPieceType(cleaned);
 
-        // Log parsed info
         System.out.println(" → Cleaned: " + cleaned);
         System.out.println(" → Piece type: " + type);
         System.out.println(" → Target square: " + to);
         System.out.println(" → Is capture: " + isCapture);
+        if (promotionType != null) {
+            System.out.println(" → Promotion to: " + promotionType);
+        }
 
-        // Extract disambiguation (but only for non-pawns)
+        // Extract disambiguation
         String disambiguation = null;
         int offset = isCapture ? 1 : 0;
         if (type != PieceType.PAWN && cleaned.length() > (3 + offset)) {
@@ -65,15 +82,13 @@ public class SANInterpreter {
                     if (move.to().equals(to)) {
                         Piece target = board.getPiece(to);
                         if (target == null) {
-                            // Check for en passant capture
                             Square enPassant = board.getEnPassantTarget();
-
                             if (to.equals(enPassant)) {
-                                return move; // valid en passant capture
+                                return new Move(from, to, piece, promotionType); // en passant + promotion
                             }
                         } else {
                             if (target.getColor() != player) {
-                                return move; // valid normal capture
+                                return new Move(from, to, piece, promotionType);
                             }
                         }
                     }
@@ -82,12 +97,11 @@ public class SANInterpreter {
             return null;
         }
 
-        // All other pieces, including pawn non-captures like a4
+        // All other pieces, including non-capture pawn moves
         for (Square from : board.getAllSquaresWithPiecesOfColor(player)) {
             Piece piece = board.getPiece(from);
             if (piece.getType() != type) continue;
 
-            // Apply disambiguation filter if present
             if (disambiguation != null) {
                 char dis = disambiguation.charAt(0);
                 if (Character.isLetter(dis)) {
@@ -108,11 +122,12 @@ public class SANInterpreter {
                         if (target.getColor() == player) continue;
                     }
                     System.out.println("✅ Matched: " + from + " → " + to);
-                    return move;
+                    return (promotionType != null)
+                            ? new Move(from, to, piece, promotionType)
+                            : move;
                 }
             }
 
-            // Print legal moves even if no match
             System.out.println("🔹 " + piece.getType() + " at " + from + " legal moves: ");
             for (Move m : legalMoves) {
                 System.out.println("   → " + m.from() + " → " + m.to());
@@ -123,18 +138,17 @@ public class SANInterpreter {
         return null;
     }
 
-
     private static Move getCastlingMove(Game game, String san) {
         Board board = game.getBoard();
         Color color = game.getPlayerToMove();
         Square from, to;
 
         if (color == Color.WHITE) {
-            from = new Square(7, 4); // e1
-            to = san.equals("O-O") ? new Square(7, 6) : new Square(7, 2); // g1 or c1
+            from = new Square(7, 4);
+            to = san.equals("O-O") ? new Square(7, 6) : new Square(7, 2);
         } else {
-            from = new Square(0, 4); // e8
-            to = san.equals("O-O") ? new Square(0, 6) : new Square(0, 2); // g8 or c8
+            from = new Square(0, 4);
+            to = san.equals("O-O") ? new Square(0, 6) : new Square(0, 2);
         }
 
         Piece king = board.getPiece(from);
@@ -158,7 +172,7 @@ public class SANInterpreter {
             case 'R' -> PieceType.ROOK;
             case 'Q' -> PieceType.QUEEN;
             case 'K' -> PieceType.KING;
-            default -> PieceType.PAWN; // if no letter, it's a pawn
+            default -> PieceType.PAWN;
         };
     }
 }
